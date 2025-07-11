@@ -64,10 +64,10 @@ function App() {
   }, []);
 
   const handleKeyPress = useCallback((key: string) => {
-    if (gameState.gameStatus !== 'playing') return;
-    if (gameState.currentGuess.length >= 5) return;
-
     setGameState(prev => {
+      if (prev.gameStatus !== 'playing') return prev;
+      if (prev.currentGuess.length >= 5) return prev;
+
       const newGuess = prev.currentGuess + key;
       const newGuesses = [...prev.guesses];
       const currentRowLetters = [...newGuesses[prev.currentRow]];
@@ -88,13 +88,13 @@ function App() {
         guesses: newGuesses,
       };
     });
-  }, [gameState.gameStatus, gameState.currentGuess.length]);
+  }, []);
 
   const handleBackspace = useCallback(() => {
-    if (gameState.gameStatus !== 'playing') return;
-    if (gameState.currentGuess.length === 0) return;
-
     setGameState(prev => {
+      if (prev.gameStatus !== 'playing') return prev;
+      if (prev.currentGuess.length === 0) return prev;
+
       const newGuess = prev.currentGuess.slice(0, -1);
       const newGuesses = [...prev.guesses];
       const currentRowLetters = [...newGuesses[prev.currentRow]];
@@ -115,18 +115,14 @@ function App() {
         guesses: newGuesses,
       };
     });
-  }, [gameState.gameStatus, gameState.currentGuess.length]);
+  }, []);
 
   const handleEnter = useCallback(() => {
-    if (gameState.gameStatus !== 'playing') return;
-    if (gameState.currentGuess.length !== 5) return;
-
-    if (!isValidWord(gameState.currentGuess)) {
-      // Could add shake animation here in the future
-      return;
-    }
-
     setGameState(prev => {
+      if (prev.gameStatus !== 'playing') return prev;
+      if (prev.currentGuess.length !== 5) return prev;
+      if (!isValidWord(prev.currentGuess)) return prev;
+
       const evaluatedGuess = evaluateGuess(prev.currentGuess, prev.targetWord);
       const newGuesses = [...prev.guesses];
       newGuesses[prev.currentRow] = evaluatedGuess;
@@ -134,7 +130,7 @@ function App() {
       const isWin = evaluatedGuess.every(letter => letter.state === 'correct');
       const isGameOver = prev.currentRow === 5;
       
-      let newGameStatus = prev.gameStatus;
+      let newGameStatus: 'playing' | 'won' | 'lost' = prev.gameStatus;
       if (isWin) {
         newGameStatus = 'won';
       } else if (isGameOver) {
@@ -149,7 +145,7 @@ function App() {
         gameStatus: newGameStatus,
       };
     });
-  }, [gameState.gameStatus, gameState.currentGuess]);
+  }, []);
 
   const handleNewGame = useCallback(() => {
     const newTargetWord = getRandomWord();
